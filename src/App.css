@@ -1,6 +1,6 @@
 @font-face{
-  font-family: 'Space';
-  src: url('./fonts/SpaceMono-Bold.ttf') format('opentype');
+  font-family: 'PublicPixel';
+  src: url('./fonts/PublicPixel.ttf') format('opentype');
 }
 
 @keyframes textShine {
@@ -12,22 +12,29 @@
   }
 }
 
-.timer{
+.timer {
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 8em;
-  font-family: 'Space', monospace;
-  background: linear-gradient(
-    to right,
-    #1e677b 20%,
-    #095a5a 30%,
-    #12d7a3 50%,
-    #136666 80%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 500% auto;
-  animation: textShine 10s ease-in-out infinite alternate;
+  text-transform: uppercase;
+  font-family: 'PublicPixel';
+  font-weight: 700;
+    color: #f5f5f5;
+    text-shadow: 1px 1px 1px #919191,
+        1px 2px 1px #919191,
+        1px 3px 1px #919191,
+        1px 4px 1px #919191,
+        1px 5px 1px #919191,
+        1px 6px 1px #919191,
+        1px 7px 1px #919191,
+        1px 8px 1px #919191,
+        1px 9px 1px #919191,
+        1px 10px 1px #919191,
+    1px 18px 6px rgba(246, 149, 149, 0.4),
+    1px 22px 10px rgba(146, 146, 146, 0.2),
+    1px 25px 35px rgba(16,16,16,0.2),
+    1px 30px 60px rgba(16,16,16,0.4);
 }
+
+

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
+import halfMoon from './images/half-moon.png';
+import './nightdaybuttons.css'
 import './timerButtons.css';
 import * as MUI from '@mui/material';
 
@@ -66,13 +68,13 @@ function Timer() {
   
     return (
         <div className="App">
-            <button className="timer-button" style={{ "--clr": "#0e7a04" }} onClick={resetTimer}>
-              <span>Reset!</span>
+            <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={resetTimer}>
+              <span>Reset</span>
               <div className="animation"></div>
             </button>
           <p className="timer">{timer}</p>
           <div className="play-pause-container">
-            <button className="timer-button" style={{ "--clr": "#0e7a04" }} onClick={toggleTimer}>
+            <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={toggleTimer}>
               <span>{isRunning ? 'Pause' : 'Play'}</span>
               <div className="animation"></div>
             </button>
@@ -84,7 +86,13 @@ function Timer() {
 
 function App() {
   return (
-    <div className="App">
+    <div>
+      <button
+        className="nightdaybutton"
+        onClick={() => {
+          console.log("Button clicked");
+        }}
+      ></button>
       <header className="App-header">
         <Timer></Timer>
       </header>
