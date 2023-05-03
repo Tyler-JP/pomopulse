@@ -1,0 +1,33 @@
+@font-face{
+  font-family: 'Space';
+  src: url('./fonts/SpaceMono-Bold.ttf') format('opentype');
+}
+
+@keyframes textShine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.timer{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 8em;
+  font-family: 'Space', monospace;
+  background: linear-gradient(
+    to right,
+    #1e677b 20%,
+    #095a5a 30%,
+    #12d7a3 50%,
+    #136666 80%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 500% auto;
+  animation: textShine 10s ease-in-out infinite alternate;
+}
