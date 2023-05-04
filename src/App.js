@@ -1,19 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
-import halfMoon from './images/half-moon.png';
 import './nightdaybuttons.css'
 import './timerButtons.css';
-import * as MUI from '@mui/material';
-
-
-function AlertComponent(props) {
-    return (
-        <MUI.Alert severity="error">
-            <MUI.AlertTitle>Error</MUI.AlertTitle>
-            This is an error alert - <strong>check it out!</strong>
-        </MUI.Alert>
-    );
-}
+import './settings.css';
 
 function Timer() {
     const Ref = useRef(null);
@@ -57,21 +46,12 @@ function Timer() {
       }
     }, [isRunning, startTimer]);
   
-    const resetTimer = () => {
-      setRemainingTime(60000);
-      setTimer('01:00');
-    };
-  
     const toggleTimer = () => {
       setIsRunning((prevIsRunning) => !prevIsRunning);
     };
   
     return (
         <div className="App">
-            <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={resetTimer}>
-              <span>Reset</span>
-              <div className="animation"></div>
-            </button>
           <p className="timer">{timer}</p>
           <div className="play-pause-container">
             <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={toggleTimer}>
@@ -85,13 +65,21 @@ function Timer() {
 }
 
 function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const handleClick = () =>  {
+    setIsDarkMode(!isDarkMode);
+  }
+
+
   return (
-    <div>
+    <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
       <button
-        className="nightdaybutton"
-        onClick={() => {
-          console.log("Button clicked");
-        }}
+        className={`nightdaybutton ${isDarkMode ? 'day-icon' : 'night-icon'}`}
+        onClick={handleClick}
+      ></button>
+      <button
+        className={'settingsbutton settings-icon'}
       ></button>
       <header className="App-header">
         <Timer></Timer>

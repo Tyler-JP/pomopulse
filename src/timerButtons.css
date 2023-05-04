@@ -36,6 +36,7 @@ body {
   font-size: 1rem;
   padding: 1rem 3rem;
   transition: 0.2s;
+  cursor: pointer;
 }
 
 .timer-button:hover {
