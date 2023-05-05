@@ -64,12 +64,27 @@ function Timer() {
            
 }
 
+
+
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const settingsPanelRef = useRef(null);
 
   const handleClick = () =>  {
     setIsDarkMode(!isDarkMode);
   }
+
+  const toggleSettingsPanel = () => {
+    const settingsModal = document.querySelector('.settings-modal');
+    settingsModal.classList.toggle('show');
+  };
+
+  window.addEventListener('click', function(event) {
+    if (event.target.id === 'settingsButton') {
+      toggleSettingsPanel();
+    }
+  });
 
 
   return (
@@ -80,12 +95,20 @@ function App() {
       ></button>
       <button
         className={'settingsbutton settings-icon'}
+        onClick={toggleSettingsPanel}
       ></button>
       <header className="App-header">
         <Timer></Timer>
       </header>
+      <div className={`settings-panel ${showSettingsPanel ? 'show' : ''}`}>
+        <div className="settings-modal">
+          <div className="settings-content">
+          </div>
+        </div>
+      </div>
     </div>
   );
+
 }
 
 export default App;
