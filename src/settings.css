@@ -50,15 +50,16 @@ z-index: 1;
 }
 
 .settings-modal:before {
-content: "";
-display: block;
-position: absolute;
-border-bottom: 10px solid #fff;
-border-left: 10px solid transparent;
-border-right: 10px solid transparent;
-top: -7px;
-right: 10px;
-}
+    content: "";
+    display: block;
+    position: absolute;
+    top: -7px;
+    right: 10px;
+    border-bottom: 10px solid #fff;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    animation: vanish 2.5s ease-out forwards;
+  }
 
 .settings-modal:after {
 content: "";
@@ -75,29 +76,41 @@ animation: blockyAppear 2s forwards;
 
 
 @keyframes blockyAppear {
-    0% {
-      width: 0;
-      height: 0;
-      background-size: 0% 0%;
-    }
-    25% {
-      width: 75px;
-      height: 37.5px;
-      background-size: 25% 25%;
-    }
-    50% {
-      width: 150px;
-      height: 75px;
-      background-size: 50% 50%;
-    }
-    75% {
-      width: 225px;
-      height: 112.5px;
-      background-size: 75% 75%;
-    }
-    100% {
-      width: 300px;
-      height: 150px;
-      background-size: 100% 100%;
-    }
-  }
+0% {
+width: 0;
+height: 0;
+background-size: 0% 0%;
+}
+25% {
+width: 75px;
+height: 37.5px;
+background-size: 25% 25%;
+}
+50% {
+width: 150px;
+height: 75px;
+background-size: 50% 50%;
+}
+75% {
+width: 225px;
+height: 112.5px;
+background-size: 75% 75%;
+}
+100% {
+width: 300px;
+height: 150px;
+background-size: 100% 100%;
+}
+}
+
+@keyframes vanish {
+from {
+    opacity: 0;
+    transform: translateY(50px);
+}
+to {
+    opacity: 1;
+    transform: translateY(0);
+}
+}
+  
