@@ -40,26 +40,26 @@ background-color: #fff;
 border-radius: 10px;
 box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 display: none;
-padding: 20px;
-position: absolute;
-top: -390px;
-left: 777px;
-width: 300px;
+padding: 15px;
+position: fixed;
+top: calc(15.4% - 75px);
+left: calc(93.1% - 150px);
+width: 250px;
 height: 150px;
 z-index: 1;
 }
 
 .settings-modal:before {
-    content: "";
-    display: block;
-    position: absolute;
-    top: -7px;
-    right: 10px;
-    border-bottom: 10px solid #fff;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    animation: vanish 2.5s ease-out forwards;
-  }
+content: "";
+display: block;
+position: absolute;
+top: -7px;
+right: 10px;
+border-bottom: 10px solid #fff;
+border-left: 10px solid transparent;
+border-right: 10px solid transparent;
+animation: vanish 2.5s ease-out forwards;
+}
 
 .settings-modal:after {
 content: "";
@@ -71,7 +71,7 @@ right: 20px;
 
 .settings-modal.show {
 display: block;
-animation: blockyAppear 2s forwards;
+animation: blockyAppear 1.6s forwards;
 }
 
 
@@ -83,7 +83,7 @@ background-size: 0% 0%;
 }
 25% {
 width: 75px;
-height: 37.5px;
+height: 50px;
 background-size: 25% 25%;
 }
 50% {
@@ -97,7 +97,7 @@ height: 112.5px;
 background-size: 75% 75%;
 }
 100% {
-width: 300px;
+width: 250px;
 height: 150px;
 background-size: 100% 100%;
 }
@@ -105,12 +105,11 @@ background-size: 100% 100%;
 
 @keyframes vanish {
 from {
-    opacity: 0;
-    transform: translateY(50px);
+opacity: 0;
+transform: translateY(50px);
 }
 to {
-    opacity: 1;
-    transform: translateY(0);
+opacity: 1;
+transform: translateY(0);
 }
 }
-  

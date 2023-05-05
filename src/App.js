@@ -70,8 +70,27 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const settingsPanelRef = useRef(null);
+  const [message, setMessage] = useState('');
+
+  const handleChange = event => {
+    setMessage(event.target.value);
+
+    console.log('value is:', event.target.value);
+  };
 
   const handleClick = () =>  {
+    setIsDarkMode(!isDarkMode);
+  }
+
+  const setShortBreakTimer = () =>  {
+    setIsDarkMode(!isDarkMode);
+  }
+
+  const setLongBreakTimer = () =>  {
+    setIsDarkMode(!isDarkMode);
+  }
+
+  const setPomodoroTimer = () =>  {
     setIsDarkMode(!isDarkMode);
   }
 
@@ -103,6 +122,33 @@ function App() {
       <div className={`settings-panel ${showSettingsPanel ? 'show' : ''}`}>
         <div className="settings-modal">
           <div className="settings-content">
+          <button onClick={setShortBreakTimer}>Save</button>
+          <input
+          type="number"
+          id="message"
+          name="message"
+          onChange={handleChange}
+          value={message}
+          autoComplete="off"
+          />
+          <button onClick={setLongBreakTimer}>Save</button>
+          <input
+          type="number"
+          id="message"
+          name="message"
+          onChange={handleChange}
+          value={message}
+          autoComplete="off"
+          />
+          <button onClick={setPomodoroTimer}>Save</button>
+          <input
+          type="number"
+          id="message"
+          name="message"
+          onChange={handleChange}
+          value={message}
+          autoComplete="off"
+          />
           </div>
         </div>
       </div>
