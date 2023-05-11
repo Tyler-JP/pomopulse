@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { Component, useState, useEffect, useRef, useCallback } from 'react';
+import { render } from 'react-dom';
 import './App.css';
 import './nightdaybuttons.css'
 import './timerButtons.css';
@@ -64,6 +65,80 @@ function Timer() {
            
 }
 
+export function InputNumber({ steps = 1, onChange }) {
+  const [value, setValue] = useState(0);
+  const [mouseDownDirection, setMouseDownDirection] = useState(null);
+  const max = (num) => (num < 0 ? 4 : 3);
+
+  const handleChange = ({ currentTarget: { value } }) => {
+      setValue(curr => {
+          if (!Boolean(value)) { return 0; }
+          const numeric = parseInt(value, 10);
+          const maxLength = max(numeric);
+
+          if (value.length > maxLength) {
+              return curr;
+          }
+
+          return (value.length <= maxLength ? numeric : curr);
+      });
+  };
+
+  const handleButtonChange = (direction) => {
+      setValue(curr => {
+          let next;
+
+          switch (direction) {
+              case "up":
+                  next = curr + (steps || 1);
+                  break;
+              case "down":
+                  next = curr - (steps || 1);
+                  break;
+              default:
+                  next = curr;
+                  break;
+          }
+
+          return `${next}`.length <= max(curr) ? next : curr;
+      });
+  };
+
+  useEffect(() => {
+      if(onChange) {
+          onChange(value);
+      }
+  }, [value, onChange]);
+
+  return (
+      <div className="input-number">
+          <button
+              className="input-number-button"
+              onClick={() => handleButtonChange("down")}
+              onMouseDown={() => setMouseDownDirection("down")}
+              onMouseOut={() => setMouseDownDirection(null)}
+              onMouseUp={() => setMouseDownDirection(null)}
+          >-</button>
+          <input 
+              className="input-number-input"
+              type="number" 
+              step={steps} 
+              value={value} 
+              onChange={handleChange} 
+          />
+          <button
+              className="input-number-button"
+              onClick={() => handleButtonChange("up")}
+              onMouseDown={() => setMouseDownDirection("up")}
+              onMouseUp={() => setMouseDownDirection(null)}
+              onMouseOut={() => setMouseDownDirection(null)}
+          >+</button>
+      </div>
+  );
+}
+
+
+
 
 
 function App() {
@@ -123,14 +198,7 @@ function App() {
         <div className="settings-modal">
           <div className="settings-content">
           <button onClick={setShortBreakTimer}>Save</button>
-          <input
-          type="number"
-          id="message"
-          name="message"
-          onChange={handleChange}
-          value={message}
-          autoComplete="off"
-          />
+          <InputNumber/>
           <button onClick={setLongBreakTimer}>Save</button>
           <input
           type="number"
