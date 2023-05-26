@@ -5,11 +5,11 @@ import './nightdaybuttons.css'
 import './timerButtons.css';
 import './settings.css';
 
-function Timer() {
+function Timer({pomodoro, longBreak, shortBreak}) {
     const Ref = useRef(null);
-    const [timer, setTimer] = useState('01:00');
+    const [timer, setTimer] = useState('45:00');
     const [isRunning, setIsRunning] = useState(false);
-    const [remainingTime, setRemainingTime] = useState(60000);
+    const [remainingTime, setRemainingTime] = useState(45 * 60 * 1000);
   
     const getTimeRemaining = (time) => {
       const total = time;
@@ -50,10 +50,40 @@ function Timer() {
     const toggleTimer = () => {
       setIsRunning((prevIsRunning) => !prevIsRunning);
     };
+
+    const setPomodoro = () => {
+      setTimer(`${pomodoro}:00`);
+      setRemainingTime(pomodoro * 60 * 1000);
+    };
+
+    const setLongBreak = () => {
+      setTimer(`${longBreak}:00`);
+      setRemainingTime(longBreak * 60 * 1000);
+    };
+    
+    const setShortBreak = () => {
+      setTimer(`${shortBreak}:00`);
+      setRemainingTime(shortBreak * 60 * 1000);
+    };
+
   
     return (
         <div className="App">
           <p className="timer">{timer}</p>
+          <div className="timer-config-container">
+            <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setPomodoro}>
+              <span>Pomodoro</span>
+              <div className="animation"></div>
+            </button>
+            <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setLongBreak}>
+              <span>Long Break</span>
+              <div className="animation"></div>
+            </button>
+            <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setShortBreak}>
+              <span>Short Break</span>
+              <div className="animation"></div>
+            </button>
+          </div>
           <div className="play-pause-container">
             <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={toggleTimer}>
               <span>{isRunning ? 'Pause' : 'Play'}</span>
@@ -145,11 +175,20 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const settingsPanelRef = useRef(null);
-  const [message, setMessage] = useState('');
+  const [pomodoro, setPomodoro] = useState('40');
+  const [shortBreak, setShortBreak] = useState('5');
+  const [longBreak, setLongBreak] = useState('15');
 
-  const handleChange = event => {
-    setMessage(event.target.value);
-
+  const handleChangePomodoro = event => {
+    setPomodoro(event.target.value);
+    console.log('value is:', event.target.value);
+  };
+  const handleChangeShortBreak = event => {
+    setShortBreak(event.target.value);
+    console.log('value is:', event.target.value);
+  };
+  const handleChangeLongBreak = event => {
+    setLongBreak(event.target.value);
     console.log('value is:', event.target.value);
   };
 
@@ -192,30 +231,40 @@ function App() {
         onClick={toggleSettingsPanel}
       ></button>
       <header className="App-header">
-        <Timer></Timer>
+        <Timer pomodoro={pomodoro} longBreak={longBreak} shortBreak={shortBreak}></Timer>
       </header>
       <div className={`settings-panel ${showSettingsPanel ? 'show' : ''}`}>
         <div className="settings-modal">
           <div className="settings-content">
-          <button onClick={setShortBreakTimer}>Save</button>
-          <InputNumber/>
-          <button onClick={setLongBreakTimer}>Save</button>
+          <label htmlFor="shortBreak">Pomodoro:</label>
           <input
           type="number"
-          id="message"
-          name="message"
-          onChange={handleChange}
-          value={message}
+          id="pomodoro"
+          name="pomodoro"
+          max="180"
+          onChange={handleChangePomodoro}
+          value={pomodoro}
           autoComplete="off"
           />
-          <button onClick={setPomodoroTimer}>Save</button>
+          <label htmlFor="shortBreak">Long Break:</label>
           <input
           type="number"
-          id="message"
-          name="message"
-          onChange={handleChange}
-          value={message}
+          id="longBreak"
+          name="longBreak"
+          onChange={handleChangeLongBreak}
+          value={longBreak}
           autoComplete="off"
+          max = "180"
+          />
+          <label htmlFor="shortBreak">Short Break:</label>
+          <input
+          type="number"
+          id="shortBreak"
+          name="shortBreak"
+          onChange={handleChangeShortBreak}
+          value={shortBreak}
+          autoComplete="off"
+          max = "60"
           />
           </div>
         </div>

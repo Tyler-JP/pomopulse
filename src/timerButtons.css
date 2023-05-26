@@ -104,9 +104,24 @@ body {
   animation: move 3s infinite;
 }
 
+.timer-config-container{
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-block;
+  display: flex; 
+  white-space: nowrap;
+}
+
+.timer-config-container button {
+  position: relative;
+  margin: 0 5px;
+}
+
 .play-pause-container {
   position: absolute;
-  bottom: 10%;
+  bottom: 5%;
   left: 50%;
   transform: translateX(-50%);
 }
