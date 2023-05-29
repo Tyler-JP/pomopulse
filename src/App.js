@@ -4,31 +4,34 @@ import './App.css';
 import './nightdaybuttons.css'
 import './timerButtons.css';
 import './settings.css';
+  import backgroundImageDay from './images/background.gif';
+  import backgroundImageNight from './images/background-night-optimized.gif';
 
-function Timer({pomodoro, longBreak, shortBreak}) {
+function Timer({pomodoro, longBreak, shortBreak, setActiveTimer}) {
     const Ref = useRef(null);
     const [timer, setTimer] = useState('45:00');
     const [isRunning, setIsRunning] = useState(false);
     const [remainingTime, setRemainingTime] = useState(45 * 60 * 1000);
-  
+
     const getTimeRemaining = (time) => {
-      const total = time;
-      const seconds = Math.floor((total / 1000) % 60);
-      const minutes = Math.floor((total / 1000 / 60) % 60);
+      const totalSeconds = Math.floor(time / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
       return {
-        total,
+        totalSeconds,
         minutes,
         seconds,
       };
     };
+    
   
     const startTimer = useCallback(() => {
-      let { total, minutes, seconds } = getTimeRemaining(remainingTime);
-      if (total >= 0) {
+      let { totalSeconds, minutes, seconds } = getTimeRemaining(remainingTime);
+      if (totalSeconds >= 0) {
         setTimer(
-            (minutes > 9 ? minutes : '0' + minutes) +
-            ':' +
-            (seconds > 9 ? seconds : '0' + seconds)
+          (minutes > 9 ? minutes : '0' + minutes) +
+          ':' +
+          (seconds > 9 ? seconds : '0' + seconds)
         );
         if (isRunning) {
           Ref.current = setTimeout(() => {
@@ -38,6 +41,7 @@ function Timer({pomodoro, longBreak, shortBreak}) {
         }
       }
     }, [remainingTime, isRunning]);
+    
   
     useEffect(() => {
       if (isRunning) {
@@ -46,24 +50,37 @@ function Timer({pomodoro, longBreak, shortBreak}) {
         return () => clearTimeout(Ref.current);
       }
     }, [isRunning, startTimer]);
+
+    
   
     const toggleTimer = () => {
       setIsRunning((prevIsRunning) => !prevIsRunning);
     };
 
+    const formatTime = (time) => {
+      const formattedTime = time.toString().padStart(2, '0');
+      return formattedTime;
+    };
+
     const setPomodoro = () => {
-      setTimer(`${pomodoro}:00`);
+      const formattedTime = formatTime(pomodoro);
+      setTimer(`${formattedTime}:00`);
       setRemainingTime(pomodoro * 60 * 1000);
+      setActiveTimer('pomodoro');
     };
 
     const setLongBreak = () => {
-      setTimer(`${longBreak}:00`);
+      const formattedTime = formatTime(longBreak);
+      setTimer(`${formattedTime}:00`);
       setRemainingTime(longBreak * 60 * 1000);
+      setActiveTimer('longBreak');
     };
     
     const setShortBreak = () => {
-      setTimer(`${shortBreak}:00`);
+      const formattedTime = formatTime(shortBreak);
+      setTimer(`${formattedTime}:00`);
       setRemainingTime(shortBreak * 60 * 1000);
+      setActiveTimer('shortBreak');
     };
 
   
@@ -176,35 +193,38 @@ function App() {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const settingsPanelRef = useRef(null);
   const [pomodoro, setPomodoro] = useState('40');
+  const [pomodoroActive, setIsPomodoro] = useState(false);
   const [shortBreak, setShortBreak] = useState('5');
+  const [shortBreakActive, setIsShortBreak] = useState(false);
   const [longBreak, setLongBreak] = useState('15');
+  const [longBreakActive, setIsLongBreak] = useState(false);
+  const [activeTimer, setActiveTimer] = useState('pomodoro');
+  const backgroundImage = isDarkMode ? backgroundImageNight : backgroundImageDay;
+
 
   const handleChangePomodoro = event => {
     setPomodoro(event.target.value);
+    setIsPomodoro(true); 
+    setIsShortBreak(false); 
+    setIsLongBreak(false);
     console.log('value is:', event.target.value);
   };
   const handleChangeShortBreak = event => {
     setShortBreak(event.target.value);
+    setIsShortBreak(true);
+    setIsPomodoro(false);
+    setIsLongBreak(false);
     console.log('value is:', event.target.value);
   };
   const handleChangeLongBreak = event => {
     setLongBreak(event.target.value);
+    setIsLongBreak(true);
+    setIsPomodoro(false);
+    setIsShortBreak(false);
     console.log('value is:', event.target.value);
   };
 
   const handleClick = () =>  {
-    setIsDarkMode(!isDarkMode);
-  }
-
-  const setShortBreakTimer = () =>  {
-    setIsDarkMode(!isDarkMode);
-  }
-
-  const setLongBreakTimer = () =>  {
-    setIsDarkMode(!isDarkMode);
-  }
-
-  const setPomodoroTimer = () =>  {
     setIsDarkMode(!isDarkMode);
   }
 
@@ -219,6 +239,14 @@ function App() {
     }
   });
 
+  document.body.style = `
+    background-image: url('${backgroundImage}');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+  `;
+
 
   return (
     <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
@@ -231,7 +259,10 @@ function App() {
         onClick={toggleSettingsPanel}
       ></button>
       <header className="App-header">
-        <Timer pomodoro={pomodoro} longBreak={longBreak} shortBreak={shortBreak}></Timer>
+        {activeTimer === 'pomodoro' && <p>Pomodoro</p>}
+        {activeTimer === 'shortBreak' && <p>Short Break</p>}
+        {activeTimer === 'longBreak' && <p>Long Break</p>}
+        <Timer pomodoro={pomodoro} longBreak={longBreak} shortBreak={shortBreak} setActiveTimer={setActiveTimer}></Timer>
       </header>
       <div className={`settings-panel ${showSettingsPanel ? 'show' : ''}`}>
         <div className="settings-modal">
