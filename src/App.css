@@ -12,7 +12,7 @@
   }
 }
 
-p {
+.retro-shadow {
   display: flex;
   justify-content: left;
   align-items: left;

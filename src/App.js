@@ -1,115 +1,128 @@
-import React, { Component, useState, useEffect, useRef, useCallback } from 'react';
-import { render } from 'react-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import './nightdaybuttons.css'
 import './timerButtons.css';
 import './settings.css';
-  import backgroundImageDay from './images/background.gif';
-  import backgroundImageNight from './images/background-night-optimized.gif';
+import axios from 'axios';
+import backgroundImageDay from './images/background.gif';
+import backgroundImageNight from './images/background-night-optimized.gif';
+
+function DailyQuote() {
+  const [quote, setQuote] = useState('');
+
+  const fetchQuote = useCallback(() => {
+    const category = 'happiness';
+    const apiKey = 'PPUGDmR2acLHPAQ9aCIJyQ==4ReaEuj7mtZx5Rm6';
+
+    axios.get(`https://api.api-ninjas.com/v1/quotes?category=${category}`, {
+      headers: {
+        'X-Api-Key': apiKey
+      }
+    })
+      .then(response => {
+        const quoteData = response.data;
+        if (quoteData.length > 0) {
+          const maxLength = 120; // Max length
+          const currentQuote = quoteData[0].quote;
+
+          if (currentQuote.length <= maxLength) {
+            setQuote(currentQuote);
+          } else {
+            fetchQuote(); // Retry fetching the quote
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Request failed:', error);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchQuote();
+  }, [fetchQuote]);
+
+  return (
+    <div className = "App">
+      <p className = "quote">{quote}</p>
+    </div>
+  );
+}
 
 function Timer({pomodoro, longBreak, shortBreak, setActiveTimer}) {
-    const Ref = useRef(null);
-    const [timer, setTimer] = useState('45:00');
-    const [isRunning, setIsRunning] = useState(false);
-    const [remainingTime, setRemainingTime] = useState(45 * 60 * 1000);
+  const timerRef = useRef(null);
+  const [timer, setTimer] = useState('45:00');
+  const [isRunning, setIsRunning] = useState(false);
+  const [endTime, setEndTime] = useState(null);
 
-    const getTimeRemaining = (time) => {
-      const totalSeconds = Math.floor(time / 1000);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      return {
-        totalSeconds,
-        minutes,
-        seconds,
-      };
-    };
-    
-  
-    const startTimer = useCallback(() => {
-      let { totalSeconds, minutes, seconds } = getTimeRemaining(remainingTime);
-      if (totalSeconds >= 0) {
-        setTimer(
-          (minutes > 9 ? minutes : '0' + minutes) +
-          ':' +
-          (seconds > 9 ? seconds : '0' + seconds)
-        );
-        if (isRunning) {
-          Ref.current = setTimeout(() => {
-            setRemainingTime((prevRemainingTime) => prevRemainingTime - 1000);
-            startTimer();
-          }, 1000);
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes > 9 ? minutes : '0' + minutes}:${seconds > 9 ? seconds : '0' + seconds}`;
+  };
+
+  const setPomodoro = () => {
+    setTimer(formatTime(pomodoro * 60));
+    setEndTime(Date.now() + pomodoro * 60 * 1000);
+    setActiveTimer('pomodoro');
+  };
+
+  const setLongBreak = () => {
+    setTimer(formatTime(longBreak * 60));
+    setEndTime(Date.now() + longBreak * 60 * 1000);
+    setActiveTimer('longBreak');
+  };
+
+  const setShortBreak = () => {
+    setTimer(formatTime(shortBreak * 60));
+    setEndTime(Date.now() + shortBreak * 60 * 1000);
+    setActiveTimer('shortBreak');
+  };
+
+  const toggleTimer = () => {
+    setIsRunning(!isRunning);
+  };
+
+  useEffect(() => {
+    if (isRunning && endTime) {
+      const tick = () => {
+        const remainingTime = Math.floor((endTime - Date.now()) / 1000);
+        if (remainingTime > 0) {
+          setTimer(formatTime(remainingTime));
+          timerRef.current = setTimeout(tick, 1000);
+        } else {
+          setIsRunning(false);
         }
-      }
-    }, [remainingTime, isRunning]);
-    
-  
-    useEffect(() => {
-      if (isRunning) {
-        if (Ref.current) clearTimeout(Ref.current);
-        startTimer();
-        return () => clearTimeout(Ref.current);
-      }
-    }, [isRunning, startTimer]);
+      };
+      tick();
+    }
+    return () => clearTimeout(timerRef.current);
+  }, [isRunning, endTime]);
 
-    
-  
-    const toggleTimer = () => {
-      setIsRunning((prevIsRunning) => !prevIsRunning);
-    };
-
-    const formatTime = (time) => {
-      const formattedTime = time.toString().padStart(2, '0');
-      return formattedTime;
-    };
-
-    const setPomodoro = () => {
-      const formattedTime = formatTime(pomodoro);
-      setTimer(`${formattedTime}:00`);
-      setRemainingTime(pomodoro * 60 * 1000);
-      setActiveTimer('pomodoro');
-    };
-
-    const setLongBreak = () => {
-      const formattedTime = formatTime(longBreak);
-      setTimer(`${formattedTime}:00`);
-      setRemainingTime(longBreak * 60 * 1000);
-      setActiveTimer('longBreak');
-    };
-    
-    const setShortBreak = () => {
-      const formattedTime = formatTime(shortBreak);
-      setTimer(`${formattedTime}:00`);
-      setRemainingTime(shortBreak * 60 * 1000);
-      setActiveTimer('shortBreak');
-    };
-
-  
-    return (
-        <div className="App">
-          <p className="timer">{timer}</p>
-          <div className="timer-config-container">
-            <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setPomodoro}>
-              <span>Pomodoro</span>
-              <div className="animation"></div>
-            </button>
-            <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setLongBreak}>
-              <span>Long Break</span>
-              <div className="animation"></div>
-            </button>
-            <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setShortBreak}>
-              <span>Short Break</span>
-              <div className="animation"></div>
-            </button>
-          </div>
-          <div className="play-pause-container">
-            <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={toggleTimer}>
-              <span>{isRunning ? 'Pause' : 'Play'}</span>
-              <div className="animation"></div>
-            </button>
-          </div>
-        </div>
-      );
-           
+  return (
+    <div className="App">
+      <p className="timer">{timer}</p>
+      <div className="timer-config-container">
+        <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setPomodoro}>
+          <span>Pomodoro</span>
+          <div className="animation"></div>
+        </button>
+        <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setLongBreak}>
+          <span>Long Break</span>
+          <div className="animation"></div>
+        </button>
+        <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setShortBreak}>
+          <span>Short Break</span>
+          <div className="animation"></div>
+        </button>
+      </div>
+      <div className="play-pause-container">
+        <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={toggleTimer}>
+          <span>{isRunning ? 'Pause' : 'Play'}</span>
+          <div className="animation"></div>
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export function InputNumber({ steps = 1, onChange }) {
@@ -190,14 +203,13 @@ export function InputNumber({ steps = 1, onChange }) {
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
-  const settingsPanelRef = useRef(null);
+  const [showSettingsPanel] = useState(false);
   const [pomodoro, setPomodoro] = useState('40');
-  const [pomodoroActive, setIsPomodoro] = useState(false);
+  const [, setIsPomodoro] = useState(false);
   const [shortBreak, setShortBreak] = useState('5');
-  const [shortBreakActive, setIsShortBreak] = useState(false);
+  const [setIsShortBreak] = useState(false);
   const [longBreak, setLongBreak] = useState('15');
-  const [longBreakActive, setIsLongBreak] = useState(false);
+  const [setIsLongBreak] = useState(false);
   const [activeTimer, setActiveTimer] = useState('pomodoro');
   const backgroundImage = isDarkMode ? backgroundImageNight : backgroundImageDay;
 
@@ -250,6 +262,7 @@ function App() {
 
   return (
     <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
+      <DailyQuote></DailyQuote>
       <button
         className={`nightdaybutton ${isDarkMode ? 'day-icon' : 'night-icon'}`}
         onClick={handleClick}
@@ -259,9 +272,9 @@ function App() {
         onClick={toggleSettingsPanel}
       ></button>
       <header className="App-header">
-        {activeTimer === 'pomodoro' && <p>Pomodoro</p>}
-        {activeTimer === 'shortBreak' && <p>Short Break</p>}
-        {activeTimer === 'longBreak' && <p>Long Break</p>}
+        {activeTimer === 'pomodoro' && <p className = "retro-shadow">Pomodoro</p>}
+        {activeTimer === 'shortBreak' && <p className = "retro-shadow">Short Break</p>}
+        {activeTimer === 'longBreak' && <p className = "retro-shadow">Long Break</p>}
         <Timer pomodoro={pomodoro} longBreak={longBreak} shortBreak={shortBreak} setActiveTimer={setActiveTimer}></Timer>
       </header>
       <div className={`settings-panel ${showSettingsPanel ? 'show' : ''}`}>

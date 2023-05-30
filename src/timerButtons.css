@@ -4,6 +4,37 @@
   box-sizing: border-box;
 }
 
+.quote {
+  color: #edb5cc;
+  font-size: 0.6rem;
+  font-family: "PublicPixel";
+  overflow: hidden;
+  left: 50%; 
+  position: absolute;
+  top: 20px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  animation: typewriter 7s steps(90) forwards;
+  animation-fill-mode: both;
+  font-weight: 600;
+}
+
+.quote-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+@keyframes typewriter {
+  from {
+    max-width: 0; 
+  }
+  to {
+    max-width: 2000px;
+  }
+}
+
 body {
   background-image: url('./images/background.gif');
   background-size: cover;
