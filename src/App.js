@@ -26,7 +26,7 @@ function DailyQuote() {
           const currentQuote = quoteData[0].quote;
 
           if (currentQuote.length <= maxLength) {
-            setQuote(currentQuote);
+            setQuote("\"" + currentQuote + "\"");
           } else {
             fetchQuote(); // Retry fetching the quote
           }
@@ -205,7 +205,7 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showSettingsPanel] = useState(false);
   const [pomodoro, setPomodoro] = useState('40');
-  const [, setIsPomodoro] = useState(false);
+  const [setIsPomodoro] = useState(false);
   const [shortBreak, setShortBreak] = useState('5');
   const [setIsShortBreak] = useState(false);
   const [longBreak, setLongBreak] = useState('15');
@@ -280,36 +280,42 @@ function App() {
       <div className={`settings-panel ${showSettingsPanel ? 'show' : ''}`}>
         <div className="settings-modal">
           <div className="settings-content">
-          <label htmlFor="shortBreak">Pomodoro:</label>
-          <input
-          type="number"
-          id="pomodoro"
-          name="pomodoro"
-          max="180"
-          onChange={handleChangePomodoro}
-          value={pomodoro}
-          autoComplete="off"
-          />
-          <label htmlFor="shortBreak">Long Break:</label>
-          <input
-          type="number"
-          id="longBreak"
-          name="longBreak"
-          onChange={handleChangeLongBreak}
-          value={longBreak}
-          autoComplete="off"
-          max = "180"
-          />
-          <label htmlFor="shortBreak">Short Break:</label>
-          <input
-          type="number"
-          id="shortBreak"
-          name="shortBreak"
-          onChange={handleChangeShortBreak}
-          value={shortBreak}
-          autoComplete="off"
-          max = "60"
-          />
+            <div>
+              <label htmlFor="shortBreak">Pomodoro </label>
+              <input
+              type="number"
+              id="pomodoaro"
+              name="pomodoro"
+              max="99"
+              onChange={handleChangePomodoro}
+              value={pomodoro}
+              autoComplete="off"
+              />
+            </div>
+            <div>
+              <label htmlFor="shortBreak">Long Break </label>
+              <input
+              type="number"
+              id="longBreak"
+              name="longBreak"
+              onChange={handleChangeLongBreak}
+              value={longBreak}
+              autoComplete="off"
+              max = "99"
+              />
+            </div>
+            <div>
+              <label htmlFor="shortBreak">Short Break </label>
+              <input
+              type="number"
+              id="shortBreak"
+              name="shortBreak"
+              onChange={handleChangeShortBreak}
+              value={shortBreak}
+              autoComplete="off"
+              max = "99"
+              />
+            </div>
           </div>
         </div>
       </div>

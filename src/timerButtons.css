@@ -5,7 +5,7 @@
 }
 
 .quote {
-  color: #edb5cc;
+  color: #bebebe;
   font-size: 0.6rem;
   font-family: "PublicPixel";
   overflow: hidden;
@@ -53,6 +53,15 @@ body {
 @font-face{
   font-family: 'PublicPixel';
   src: url('./fonts/PublicPixel.ttf') format('opentype');
+}
+
+.play-pause-container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 5%;
+  display: flex;
+  justify-content: center;
 }
 
 .timer-button {
@@ -148,13 +157,6 @@ body {
 .timer-config-container button {
   position: relative;
   margin: 0 5px;
-}
-
-.play-pause-container {
-  position: absolute;
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
 .timer-button span.show {
