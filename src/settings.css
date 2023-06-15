@@ -1,13 +1,3 @@
-.input-number {
-position: relative;
-width: 100px;
-height: 40px;
-background-color: transparent;
-overflow: hidden;
-border-radius: 20px;
-margin: 2px;
-}
-
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
 -webkit-appearance: none;
@@ -23,48 +13,6 @@ font-size: 14px;
 font-family: 'PublicPixel';
 text-align: right;
 }  
-
-
-.input-number span {
-position: absolute;
-left: 50%;
-margin-left: -20px;
-display: inline-block;
-background-color: white;
-height: 100%;
-width: 40px;
-border-radius: 20px;
-text-align: center;
-line-height: 40px;
-font-size: 16px;
-color: #6C6DFF;
-letter-spacing: -1px;
-}
-
-.input-number-button {
-display: inline-block;
-width: 50px;
-height: 100%;
-background-color: transparent;
-border: none;
-color: white;
-font-size: 20px;
-cursor: pointer;
-background-color: rgba(255,255,255,.2);
-transition: background-color .2s ease;
-}
-
-.input-number button:nth-of-type(1) {
-padding-right: 20px
-}
-
-.input-number button:nth-of-type(2) {
-padding-left: 20px;
-}
-
-.input-number button:hover {
-background-color: rgba(255,255,255,.25);
-}
 
 .settingsbutton {
 position: absolute;
@@ -87,11 +35,6 @@ background-image: url(./images/settings.png);
 background-repeat: no-repeat;
 background-size: contain;
 background-position: center;
-}
-
-.settings-panel {
-position: relative;
-display: inline-block;
 }
 
 .settings-button {
@@ -133,31 +76,12 @@ box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 display: none;
 padding: 15px;
 position: fixed;
-top: calc(15.4% - 75px);
-left: calc(93.1% - 150px);
-width: 250px;
-height: 150px;
+top: 6.1%;
+left: 82.25%;
+max-width: 250px;
+max-height: 150px;
+overflow: auto;
 z-index: 1;
-}
-
-.settings-modal:before {
-content: "";
-display: block;
-position: absolute;
-top: -7px;
-right: 10px;
-border-bottom: 10px solid #fff;
-border-left: 10px solid transparent;
-border-right: 10px solid transparent;
-animation: vanish 2.5s ease-out forwards;
-}
-
-.settings-modal:after {
-content: "";
-display: block;
-position: absolute;
-top: -11px;
-right: 20px;
 }
 
 .settings-modal.show {
@@ -179,13 +103,4 @@ background-size: 100% 100%;
 }
 }
 
-@keyframes vanish {
-from {
-opacity: 0;
-transform: translateY(50px);
-}
-to {
-opacity: 1;
-transform: translateY(0);
-}
-}
+
