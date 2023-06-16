@@ -5,10 +5,9 @@
 }
 
 .quote {
-  color: #bebebe;
+  color: white;
   font-size: 0.6rem;
   font-family: "PublicPixel";
-  overflow: hidden;
   left: 50%; 
   position: absolute;
   top: 20px;
@@ -16,7 +15,10 @@
   white-space: nowrap;
   animation: typewriter 7s steps(90) forwards;
   animation-fill-mode: both;
-  font-weight: 600;
+  text-shadow: -1px -1px 0 pink, 
+  1px -1px 0 pink,
+ -1px  1px 0 pink,
+  1px  1px 0 pink;
 }
 
 .quote-container {

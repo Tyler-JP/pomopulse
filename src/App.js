@@ -3,6 +3,7 @@ import './App.css';
 import './nightdaybuttons.css'
 import './timerButtons.css';
 import './settings.css';
+import timersound from "./sounds/timer-complete.mp3";
 import axios from 'axios';
 import backgroundImageDay from './images/background.gif';
 import backgroundImageNight from './images/background-night-optimized.gif';
@@ -22,13 +23,13 @@ function DailyQuote() {
       .then(response => {
         const quoteData = response.data;
         if (quoteData.length > 0) {
-          const maxLength = 120; // Max length
+          const maxLength = 120;
           const currentQuote = quoteData[0].quote;
 
           if (currentQuote.length <= maxLength) {
             setQuote("\"" + currentQuote + "\"");
           } else {
-            fetchQuote(); // Retry fetching the quote
+            fetchQuote();
           }
         }
       })
@@ -48,11 +49,13 @@ function DailyQuote() {
   );
 }
 
-function Timer({pomodoro, longBreak, shortBreak, setActiveTimer}) {
+function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
   const timerRef = useRef(null);
   const [timer, setTimer] = useState('45:00');
   const [isRunning, setIsRunning] = useState(false);
+  const [isElapsed, setIsElapsed] = useState(false);
   const [endTime, setEndTime] = useState(null);
+  const alert = new Audio(timersound);
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
@@ -79,17 +82,36 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer}) {
   };
 
   const toggleTimer = () => {
-    setIsRunning(!isRunning);
+    if (isElapsed) {
+      switch (activeTimer) {
+        case 'pomodoro':
+          setPomodoro();
+          break;
+        case 'longBreak':
+          setLongBreak();
+          break;
+        case 'shortBreak':
+          setShortBreak();
+          break;
+        default:
+          break;
+      }
+      setIsElapsed(false);
+    } else {
+      setIsRunning(!isRunning);
+    }
   };
 
   useEffect(() => {
     if (isRunning && endTime) {
       const tick = () => {
-        const remainingTime = Math.floor((endTime - Date.now()) / 1000);
+        const remainingTime = (endTime - Date.now()) / 1000;
         if (remainingTime > 0) {
-          setTimer(formatTime(remainingTime));
+          setTimer(formatTime(Math.floor(remainingTime)));
           timerRef.current = setTimeout(tick, 1000);
         } else {
+          alert.play();
+          setIsElapsed(true);
           setIsRunning(false);
         }
       };
@@ -117,7 +139,7 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer}) {
       </div>
       <div className="play-pause-container">
         <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={toggleTimer}>
-          <span>{isRunning ? 'Pause' : 'Play'}</span>
+          <span>{isElapsed ? 'Reset' : isRunning ? 'Pause' : 'Play'}</span>
           <div className="animation"></div>
         </button>
       </div>
@@ -125,83 +147,8 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer}) {
   );
 }
 
-export function InputNumber({ steps = 1, onChange }) {
-  const [value, setValue] = useState(0);
-  const [mouseDownDirection, setMouseDownDirection] = useState(null);
-  const max = (num) => (num < 0 ? 4 : 3);
-
-  const handleChange = ({ currentTarget: { value } }) => {
-      setValue(curr => {
-          if (!Boolean(value)) { return 0; }
-          const numeric = parseInt(value, 10);
-          const maxLength = max(numeric);
-
-          if (value.length > maxLength) {
-              return curr;
-          }
-
-          return (value.length <= maxLength ? numeric : curr);
-      });
-  };
-
-  const handleButtonChange = (direction) => {
-      setValue(curr => {
-          let next;
-
-          switch (direction) {
-              case "up":
-                  next = curr + (steps || 1);
-                  break;
-              case "down":
-                  next = curr - (steps || 1);
-                  break;
-              default:
-                  next = curr;
-                  break;
-          }
-
-          return `${next}`.length <= max(curr) ? next : curr;
-      });
-  };
-
-  useEffect(() => {
-      if(onChange) {
-          onChange(value);
-      }
-  }, [value, onChange]);
-
-  return (
-      <div className="input-number">
-          <button
-              className="input-number-button"
-              onClick={() => handleButtonChange("down")}
-              onMouseDown={() => setMouseDownDirection("down")}
-              onMouseOut={() => setMouseDownDirection(null)}
-              onMouseUp={() => setMouseDownDirection(null)}
-          >-</button>
-          <input 
-              className="input-number-input"
-              type="number" 
-              step={steps} 
-              value={value} 
-              onChange={handleChange} 
-          />
-          <button
-              className="input-number-button"
-              onClick={() => handleButtonChange("up")}
-              onMouseDown={() => setMouseDownDirection("up")}
-              onMouseUp={() => setMouseDownDirection(null)}
-              onMouseOut={() => setMouseDownDirection(null)}
-          >+</button>
-      </div>
-  );
-}
-
-
-
-
-
 function App() {
+  const [isQuoteVis, setIsQuoteVis] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showSettingsPanel] = useState(false);
   const [pomodoro, setPomodoro] = useState('40');
@@ -235,6 +182,9 @@ function App() {
     setIsShortBreak(false);
     console.log('value is:', event.target.value);
   };
+  const handleChangeQuoteVis = event => {
+    setIsQuoteVis(!isQuoteVis);
+  }
 
   const handleClick = () =>  {
     setIsDarkMode(!isDarkMode);
@@ -262,7 +212,7 @@ function App() {
 
   return (
     <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
-      <DailyQuote></DailyQuote>
+      {isQuoteVis ? <DailyQuote></DailyQuote> : ''}
       <button
         className={`nightdaybutton ${isDarkMode ? 'day-icon' : 'night-icon'}`}
         onClick={handleClick}
@@ -275,7 +225,7 @@ function App() {
         {activeTimer === 'pomodoro' && <p className = "retro-shadow">Pomodoro</p>}
         {activeTimer === 'shortBreak' && <p className = "retro-shadow">Short Break</p>}
         {activeTimer === 'longBreak' && <p className = "retro-shadow">Long Break</p>}
-        <Timer pomodoro={pomodoro} longBreak={longBreak} shortBreak={shortBreak} setActiveTimer={setActiveTimer}></Timer>
+        <Timer pomodoro={pomodoro} longBreak={longBreak} shortBreak={shortBreak} setActiveTimer={setActiveTimer} activeTimer={setActiveTimer}></Timer>
       </header>
       <div className={`settings-panel ${showSettingsPanel ? 'show' : ''}`}>
         <div className="settings-modal">
@@ -315,6 +265,15 @@ function App() {
               autoComplete="off"
               max = "99"
               />
+            </div>
+            <div>
+            <label>Daily Quote</label>
+            <input 
+            type = "checkbox"
+            id="quoteCheckbox"
+            name="quoteCheckbox"
+            onChange={handleChangeQuoteVis}
+            />
             </div>
           </div>
         </div>
