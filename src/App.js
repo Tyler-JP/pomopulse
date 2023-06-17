@@ -81,26 +81,60 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
     setActiveTimer('shortBreak');
   };
 
+  const setTimerState = (timerType) => {
+    let timeValue = 0;
+  
+    switch (timerType) {
+      case 'pomodoro':
+        timeValue = pomodoro;
+        break;
+      case 'longBreak':
+        timeValue = longBreak;
+        break;
+      case 'shortBreak':
+        timeValue = shortBreak;
+        break;
+      default:
+        break;
+    }
+    
+    setTimer(formatTime(timeValue * 60));
+    setEndTime(Date.now() + timeValue * 60 * 1000);
+    setActiveTimer(timerType);
+  };
+
+  const cycleTimer = () => {
+    let nextTimer;
+    
+    switch (activeTimer) {
+      case 'pomodoro':
+        nextTimer = 'longBreak';
+        break;
+      case 'longBreak':
+        nextTimer = 'shortBreak';
+        break;
+      case 'shortBreak':
+        nextTimer = 'pomodoro';
+        break;
+      default:
+        break;
+    }
+
+    setTimerState(nextTimer);
+  };
+
   const toggleTimer = () => {
     if (isElapsed) {
-      switch (activeTimer) {
-        case 'pomodoro':
-          setPomodoro();
-          break;
-        case 'longBreak':
-          setLongBreak();
-          break;
-        case 'shortBreak':
-          setShortBreak();
-          break;
-        default:
-          break;
-      }
+      setTimerState(activeTimer);
       setIsElapsed(false);
     } else {
       setIsRunning(!isRunning);
     }
   };
+
+  useEffect(() => {
+    setTimerState(activeTimer);
+  }, [activeTimer]);
 
   useEffect(() => {
     if (isRunning && endTime) {
@@ -120,26 +154,22 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
     return () => clearTimeout(timerRef.current);
   }, [isRunning, endTime]);
 
+  const timerLabels = {
+    'pomodoro': 'P',
+    'longBreak': 'L',
+    'shortBreak': 'S',
+  };
+
   return (
     <div className="App">
       <p className="timer">{timer}</p>
-      <div className="timer-config-container">
-        <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setPomodoro}>
-          <span>Pomodoro</span>
-          <div className="animation"></div>
-        </button>
-        <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setLongBreak}>
-          <span>Long Break</span>
-          <div className="animation"></div>
-        </button>
-        <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={setShortBreak}>
-          <span>Short Break</span>
-          <div className="animation"></div>
-        </button>
-      </div>
       <div className="play-pause-container">
         <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={toggleTimer}>
           <span>{isElapsed ? 'Reset' : isRunning ? 'Pause' : 'Play'}</span>
+          <div className="animation"></div>
+        </button>
+        <button className="timer-button" style={{"--clr": "#f0bccc"}} onClick={() => cycleTimer()}>
+          <span>{timerLabels[activeTimer]}</span>
           <div className="animation"></div>
         </button>
       </div>
@@ -225,7 +255,7 @@ function App() {
         {activeTimer === 'pomodoro' && <p className = "retro-shadow">Pomodoro</p>}
         {activeTimer === 'shortBreak' && <p className = "retro-shadow">Short Break</p>}
         {activeTimer === 'longBreak' && <p className = "retro-shadow">Long Break</p>}
-        <Timer pomodoro={pomodoro} longBreak={longBreak} shortBreak={shortBreak} setActiveTimer={setActiveTimer} activeTimer={setActiveTimer}></Timer>
+        <Timer pomodoro={pomodoro} longBreak={longBreak} shortBreak={shortBreak} setActiveTimer={setActiveTimer} activeTimer={activeTimer}></Timer>
       </header>
       <div className={`settings-panel ${showSettingsPanel ? 'show' : ''}`}>
         <div className="settings-modal">
