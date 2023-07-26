@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
-import './nightdaybuttons.css'
 import './timerButtons.css';
 import './settings.css';
 import timersound from "./sounds/timer-complete.mp3";
@@ -23,7 +22,7 @@ function DailyQuote() {
       .then(response => {
         const quoteData = response.data;
         if (quoteData.length > 0) {
-          const maxLength = 120;
+          const maxLength = 80;
           const currentQuote = quoteData[0].quote;
 
           if (currentQuote.length <= maxLength) {
@@ -124,20 +123,22 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
   };
 
   const toggleTimer = () => {
-    if (isElapsed) {
-      setTimerState(activeTimer);
-      setIsElapsed(false);
+    if (isRunning) {
+      setIsRunning(false);
     } else {
-      setIsRunning(!isRunning);
+      const currentTime = Number(timer.split(':')[0]) * 60 + Number(timer.split(':')[1]);
+      const newEndTime = Date.now() + currentTime * 1000;
+      setEndTime(newEndTime);
+      setIsRunning(true);
     }
   };
 
   useEffect(() => {
     setTimerState(activeTimer);
   }, [activeTimer]);
-
+  
   useEffect(() => {
-    if (isRunning && endTime) {
+    if (isRunning) {
       const tick = () => {
         const remainingTime = (endTime - Date.now()) / 1000;
         if (remainingTime > 0) {
@@ -241,12 +242,8 @@ function App() {
 
 
   return (
-    <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
+    <div className={"App"}>
       {isQuoteVis ? <DailyQuote></DailyQuote> : ''}
-      <button
-        className={`nightdaybutton ${isDarkMode ? 'day-icon' : 'night-icon'}`}
-        onClick={handleClick}
-      ></button>
       <button
         className={'settingsbutton settings-icon'}
         onClick={toggleSettingsPanel}
