@@ -1,0 +1,20 @@
+@font-face{
+    font-family: 'PublicPixel';
+    src: url('./fonts/PublicPixel.ttf') format('opentype');
+}
+
+.quote {
+    position: absolute;
+    top: 2%;
+    left: 50%;
+    word-wrap: none;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 0.6rem;
+    font-family: "PublicPixel";
+    text-shadow: -1px -1px 0 pink, 
+    1px -1px 0 pink,
+    -1px  1px 0 pink,
+    1px  1px 0 pink;
+}
+

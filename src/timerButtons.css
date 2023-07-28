@@ -4,18 +4,6 @@
   box-sizing: border-box;
 }
 
-.quote {
-  color: white;
-  font-size: 0.6rem;
-  font-family: "PublicPixel";
-  position: fixed;
-  top: 20px;
-  text-shadow: -1px -1px 0 pink, 
-  1px -1px 0 pink,
- -1px  1px 0 pink,
-  1px  1px 0 pink;
-}
-
 body {
   background-image: url('./images/background.gif');
   background-size: cover;

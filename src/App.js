@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import './timerButtons.css';
 import './settings.css';
+import './quote.css';
 import timersound from "./sounds/timer-complete.mp3";
 import axios from 'axios';
 import backgroundImageDay from './images/background.gif';
@@ -22,7 +23,7 @@ function DailyQuote() {
       .then(response => {
         const quoteData = response.data;
         if (quoteData.length > 0) {
-          const maxLength = 80;
+          const maxLength = 100;
           const currentQuote = quoteData[0].quote;
 
           if (currentQuote.length <= maxLength) {
@@ -42,8 +43,10 @@ function DailyQuote() {
   }, [fetchQuote]);
 
   return (
-    <div className = "App">
-      <p className = "quote">{quote}</p>
+    <div className="quote-component">
+      <div className="quote-container">
+        <p className="quote">{quote}</p>
+      </div>
     </div>
   );
 }
@@ -108,12 +111,15 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
     switch (activeTimer) {
       case 'pomodoro':
         nextTimer = 'longBreak';
+        isElapsed && setIsElapsed(false);
         break;
       case 'longBreak':
         nextTimer = 'shortBreak';
+        isElapsed && setIsElapsed(false);
         break;
       case 'shortBreak':
         nextTimer = 'pomodoro';
+        isElapsed && setIsElapsed(false);
         break;
       default:
         break;
@@ -122,14 +128,23 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
     setTimerState(nextTimer);
   };
 
+  const resetTimer = () => {
+    setIsElapsed(false);
+    setTimerState(activeTimer);
+  };
+
   const toggleTimer = () => {
     if (isRunning) {
       setIsRunning(false);
     } else {
-      const currentTime = Number(timer.split(':')[0]) * 60 + Number(timer.split(':')[1]);
-      const newEndTime = Date.now() + currentTime * 1000;
-      setEndTime(newEndTime);
-      setIsRunning(true);
+      if (isElapsed) {
+        resetTimer();
+      } else {
+        const currentTime = Number(timer.split(':')[0]) * 60 + Number(timer.split(':')[1]);
+        const newEndTime = Date.now() + currentTime * 1000;
+        setEndTime(newEndTime);
+        setIsRunning(true);
+      }
     }
   };
 
@@ -183,43 +198,25 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showSettingsPanel] = useState(false);
   const [pomodoro, setPomodoro] = useState('40');
-  const [setIsPomodoro] = useState(false);
   const [shortBreak, setShortBreak] = useState('5');
-  const [setIsShortBreak] = useState(false);
   const [longBreak, setLongBreak] = useState('15');
-  const [setIsLongBreak] = useState(false);
   const [activeTimer, setActiveTimer] = useState('pomodoro');
   const backgroundImage = isDarkMode ? backgroundImageNight : backgroundImageDay;
 
 
   const handleChangePomodoro = event => {
     setPomodoro(event.target.value);
-    setIsPomodoro(true); 
-    setIsShortBreak(false); 
-    setIsLongBreak(false);
-    console.log('value is:', event.target.value);
   };
   const handleChangeShortBreak = event => {
-    setShortBreak(event.target.value);
-    setIsShortBreak(true);
-    setIsPomodoro(false);
-    setIsLongBreak(false);
-    console.log('value is:', event.target.value);
+      setShortBreak(event.target.value);
   };
   const handleChangeLongBreak = event => {
-    setLongBreak(event.target.value);
-    setIsLongBreak(true);
-    setIsPomodoro(false);
-    setIsShortBreak(false);
-    console.log('value is:', event.target.value);
+      setLongBreak(event.target.value);
   };
+
   const handleChangeQuoteVis = event => {
     setIsQuoteVis(!isQuoteVis);
-  }
-
-  const handleClick = () =>  {
-    setIsDarkMode(!isDarkMode);
-  }
+  };
 
   const toggleSettingsPanel = () => {
     const settingsModal = document.querySelector('.settings-modal');
@@ -242,8 +239,11 @@ function App() {
 
 
   return (
-    <div className={"App"}>
+    <>
+    <div className='quote-container'>
       {isQuoteVis ? <DailyQuote></DailyQuote> : ''}
+    </div>
+    <div className={"App"}>
       <button
         className={'settingsbutton settings-icon'}
         onClick={toggleSettingsPanel}
@@ -306,6 +306,7 @@ function App() {
         </div>
       </div>
     </div>
+  </>
   );
 
 }
