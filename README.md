@@ -3,7 +3,7 @@
 
 ## Overview
 
-[Pomopulse](pomopulse.com) is an aesthetically pleasing Pomodoro timer designed to help you focus on your tasks and take meaningful breaks in between. With customizable focus and break durations as well as a toggleable daily quote feature, Pomopulse aims to enhance your productivity without compromising on simplicity or style.
+<a href="https://pomopulse.com" target="_blank">Pomopulse</a> is an aesthetically pleasing Pomodoro timer designed to help you focus on your tasks and take meaningful breaks in between. With customizable focus and break durations as well as a toggleable daily quote feature, Pomopulse aims to enhance your productivity without compromising on simplicity or style.
 
 ## Features
 
@@ -19,4 +19,4 @@ This project is deployed using Github Pages.
 
 ## Demo
 
-Visit [pomopulse.com](pomopulse.com) to try it out!
+Visit <a href="https://pomopulse.com" target="_blank">pomopulse.com</a> to try it out!
