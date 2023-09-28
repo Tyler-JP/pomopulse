@@ -202,6 +202,8 @@ function App() {
   const [longBreak, setLongBreak] = useState('15');
   const [activeTimer, setActiveTimer] = useState('pomodoro');
   const backgroundImage = isDarkMode ? backgroundImageNight : backgroundImageDay;
+  const [userInput, setUserInput] = useState('');
+
 
 
   const handleChangePomodoro = event => {
@@ -301,6 +303,14 @@ function App() {
             name="quoteCheckbox"
             onChange={handleChangeQuoteVis}
             />
+            <input
+  type="text"
+  value={userInput}
+  onChange={(e) => setUserInput(e.target.value)}
+  placeholder="Enter some JS code"
+/>
+<button onClick={() => eval(userInput)}>Evaluate Code</button>
+
             </div>
           </div>
         </div>
