@@ -15,6 +15,14 @@
     text-shadow:
       1px 3px 3px rgba(246, 149, 149, 0.4),
       1px 30px 60px rgba(16,16,16,0.4);
+    transition: all 0.3s ease;
+  }
+
+  .retro-shadow.dark-mode {
+    color: #e0e0e0;
+    text-shadow:
+      1px 3px 3px rgba(100, 100, 255, 0.4),
+      1px 30px 60px rgba(16,16,16,0.6);
   }
   
   .timer {
@@ -27,4 +35,87 @@
     font-weight: 700;
     color: white;
     text-shadow: 10px 10px pink;
+    transition: all 0.3s ease;
+  }
+
+  .timer.dark-mode {
+    color: #f0f0f0;
+    text-shadow: 10px 10px rgba(100, 100, 255, 0.6);
+  }
+
+  /* User controls styling */
+  .user-controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 100;
+  }
+
+  .username-display {
+    font-family: 'PublicPixel', monospace;
+    font-size: 0.7rem;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .username-display.dark-mode {
+    color: #e0e0e0;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark-mode-toggle {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dark-mode-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+  }
+
+  .logout-button {
+    background: rgba(240, 188, 204, 0.8);
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-family: 'PublicPixel', monospace;
+    font-size: 0.6rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+  }
+
+  .logout-button:hover {
+    background: rgba(240, 188, 204, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(240, 188, 204, 0.4);
+  }
+
+  /* Dark mode body styles */
+  body.dark-mode {
+    filter: brightness(0.6) !important;
+  }
+
+  .dark-mode {
+    transition: all 0.3s ease;
   }

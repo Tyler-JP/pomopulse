@@ -7,8 +7,10 @@ import timersound from "./sounds/timer-complete.mp3";
 import axios from 'axios';
 import backgroundImageDay from './images/background.gif';
 import backgroundImageNight from './images/background-night-optimized.gif';
+import Login from './Login';
+import { userManager } from './userManager';
 
-function DailyQuote() {
+function DailyQuote({ isDarkMode }) {
   const [quote, setQuote] = useState('');
 
   const fetchQuote = useCallback(() => {
@@ -43,7 +45,7 @@ function DailyQuote() {
   }, [fetchQuote]);
 
   return (
-    <div className="quote-component">
+    <div className={`quote-component ${isDarkMode ? 'dark-mode' : ''}`}>
       <div className="quote-container">
         <p className="quote">{quote}</p>
       </div>
@@ -51,9 +53,9 @@ function DailyQuote() {
   );
 }
 
-function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
+function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer, currentUser, isDarkMode}) {
   const timerRef = useRef(null);
-  const [timer, setTimer] = useState('45:00');
+  const [timer, setTimer] = useState('25:00');
   const [isRunning, setIsRunning] = useState(false);
   const [isElapsed, setIsElapsed] = useState(false);
   const [endTime, setEndTime] = useState(null);
@@ -65,23 +67,55 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
     return `${minutes > 9 ? minutes : '0' + minutes}:${seconds > 9 ? seconds : '0' + seconds}`;
   };
 
-  const setPomodoro = () => {
-    setTimer(formatTime(pomodoro * 60));
-    setEndTime(Date.now() + pomodoro * 60 * 1000);
-    setActiveTimer('pomodoro');
-  };
-
-  const setLongBreak = () => {
-    setTimer(formatTime(longBreak * 60));
-    setEndTime(Date.now() + longBreak * 60 * 1000);
-    setActiveTimer('longBreak');
-  };
-
-  const setShortBreak = () => {
-    setTimer(formatTime(shortBreak * 60));
-    setEndTime(Date.now() + shortBreak * 60 * 1000);
-    setActiveTimer('shortBreak');
-  };
+  // Load timer state from user data on component mount
+  useEffect(() => {
+    if (currentUser) {
+      const timerData = userManager.getTimerData(currentUser.username);
+      if (timerData && timerData.endTime) {
+        const remainingTime = userManager.calculateRemainingTime(timerData.endTime);
+        
+        if (remainingTime > 0 && timerData.isRunning) {
+          // Timer is still running in background
+          setTimer(formatTime(remainingTime));
+          setEndTime(timerData.endTime);
+          setIsRunning(true);
+          setActiveTimer(timerData.activeTimer);
+        } else if (timerData.isRunning && remainingTime <= 0) {
+          // Timer has elapsed while user was away
+          setIsElapsed(true);
+          setIsRunning(false);
+          setTimer('00:00');
+          setActiveTimer(timerData.activeTimer);
+          alert.play();
+          // Clear the timer data
+          userManager.saveTimerData(currentUser.username, {
+            endTime: null,
+            isRunning: false
+          });
+        } else {
+          // Load the saved timer type
+          setActiveTimer(timerData.activeTimer);
+          // Initialize timer with saved type
+          let timeValue = 0;
+          switch (timerData.activeTimer) {
+            case 'pomodoro':
+              timeValue = pomodoro;
+              break;
+            case 'longBreak':
+              timeValue = longBreak;
+              break;
+            case 'shortBreak':
+              timeValue = shortBreak;
+              break;
+            default:
+              timeValue = pomodoro;
+              break;
+          }
+          setTimer(formatTime(timeValue * 60));
+        }
+      }
+    }
+  }, [currentUser, pomodoro, longBreak, shortBreak]);
 
   const setTimerState = (timerType) => {
     let timeValue = 0;
@@ -100,9 +134,19 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
         break;
     }
     
+    const newEndTime = Date.now() + timeValue * 60 * 1000;
     setTimer(formatTime(timeValue * 60));
-    setEndTime(Date.now() + timeValue * 60 * 1000);
+    setEndTime(newEndTime);
     setActiveTimer(timerType);
+
+    // Save timer state to user data
+    if (currentUser) {
+      userManager.saveTimerData(currentUser.username, {
+        activeTimer: timerType,
+        endTime: newEndTime,
+        isRunning: false
+      });
+    }
   };
 
   const cycleTimer = () => {
@@ -111,20 +155,19 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
     switch (activeTimer) {
       case 'pomodoro':
         nextTimer = 'longBreak';
-        isElapsed && setIsElapsed(false);
         break;
       case 'longBreak':
         nextTimer = 'shortBreak';
-        isElapsed && setIsElapsed(false);
         break;
       case 'shortBreak':
         nextTimer = 'pomodoro';
-        isElapsed && setIsElapsed(false);
         break;
       default:
+        nextTimer = 'pomodoro';
         break;
     }
 
+    setIsElapsed(false);
     setTimerState(nextTimer);
   };
 
@@ -135,23 +178,36 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
 
   const toggleTimer = () => {
     if (isRunning) {
+      // Pause timer
       setIsRunning(false);
+      if (currentUser) {
+        userManager.saveTimerData(currentUser.username, {
+          isRunning: false,
+          endTime: null
+        });
+      }
     } else {
       if (isElapsed) {
         resetTimer();
       } else {
+        // Start timer
         const currentTime = Number(timer.split(':')[0]) * 60 + Number(timer.split(':')[1]);
         const newEndTime = Date.now() + currentTime * 1000;
         setEndTime(newEndTime);
         setIsRunning(true);
+        
+        // Save timer state to user data
+        if (currentUser) {
+          userManager.saveTimerData(currentUser.username, {
+            endTime: newEndTime,
+            isRunning: true,
+            activeTimer: activeTimer
+          });
+        }
       }
     }
   };
 
-  useEffect(() => {
-    setTimerState(activeTimer);
-  }, [activeTimer]);
-  
   useEffect(() => {
     if (isRunning) {
       const tick = () => {
@@ -163,12 +219,21 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
           alert.play();
           setIsElapsed(true);
           setIsRunning(false);
+          setTimer('00:00');
+          
+          // Clear timer data from user storage
+          if (currentUser) {
+            userManager.saveTimerData(currentUser.username, {
+              endTime: null,
+              isRunning: false
+            });
+          }
         }
       };
       tick();
     }
     return () => clearTimeout(timerRef.current);
-  }, [isRunning, endTime]);
+  }, [isRunning, endTime, currentUser]);
 
   const timerLabels = {
     'pomodoro': 'P',
@@ -177,8 +242,8 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
   };
 
   return (
-    <div className="App">
-      <p className="timer">{timer}</p>
+    <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
+      <p className={`timer ${isDarkMode ? 'dark-mode' : ''}`}>{timer}</p>
       <div className="play-pause-container">
         <button className="timer-button" style={{ "--clr": "#f0bccc" }} onClick={toggleTimer}>
           <span>{isElapsed ? 'Reset' : isRunning ? 'Pause' : 'Play'}</span>
@@ -194,26 +259,103 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer}) {
 }
 
 function App() {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [loginError, setLoginError] = useState('');
   const [isQuoteVis, setIsQuoteVis] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showSettingsPanel] = useState(false);
-  const [pomodoro, setPomodoro] = useState('40');
-  const [shortBreak, setShortBreak] = useState('5');
-  const [longBreak, setLongBreak] = useState('15');
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [pomodoro, setPomodoro] = useState(25);
+  const [shortBreak, setShortBreak] = useState(5);
+  const [longBreak, setLongBreak] = useState(15);
   const [activeTimer, setActiveTimer] = useState('pomodoro');
+
+  // Check for logged in user on app start
+  useEffect(() => {
+    const user = userManager.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      // Load user settings
+      if (user.timerData && user.timerData.settings) {
+        const settings = user.timerData.settings;
+        setPomodoro(settings.pomodoro || 25);
+        setShortBreak(settings.shortBreak || 5);
+        setLongBreak(settings.longBreak || 15);
+      }
+    } else {
+      setShowLogin(true);
+    }
+  }, []);
+
+  // Save settings when they change
+  useEffect(() => {
+    if (currentUser) {
+      userManager.saveUserSettings(currentUser.username, {
+        pomodoro,
+        shortBreak,
+        longBreak
+      });
+    }
+  }, [pomodoro, shortBreak, longBreak, currentUser]);
+
+  const handleLogin = (username, password) => {
+    const result = userManager.loginUser(username, password);
+    if (result.success) {
+      const user = userManager.getCurrentUser();
+      setCurrentUser(user);
+      setShowLogin(false);
+      setLoginError('');
+      
+      // Load user settings
+      if (user.timerData && user.timerData.settings) {
+        const settings = user.timerData.settings;
+        setPomodoro(settings.pomodoro || 25);
+        setShortBreak(settings.shortBreak || 5);
+        setLongBreak(settings.longBreak || 15);
+      }
+    } else {
+      setLoginError(result.error);
+    }
+  };
+
+  const handleRegister = (username, password) => {
+    const result = userManager.registerUser(username, password);
+    if (result.success) {
+      // Auto-login after registration
+      handleLogin(username, password);
+    } else {
+      setLoginError(result.error);
+    }
+  };
+
+  const handleLogout = () => {
+    userManager.logoutUser();
+    setCurrentUser(null);
+    setShowLogin(true);
+    // Reset to default settings
+    setPomodoro(25);
+    setShortBreak(5);
+    setLongBreak(15);
+    setActiveTimer('pomodoro');
+  };
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   const backgroundImage = isDarkMode ? backgroundImageNight : backgroundImageDay;
-  const [userInput, setUserInput] = useState('');
-
-
 
   const handleChangePomodoro = event => {
-    setPomodoro(event.target.value);
+    setPomodoro(Number(event.target.value));
   };
+  
   const handleChangeShortBreak = event => {
-      setShortBreak(event.target.value);
+    setShortBreak(Number(event.target.value));
   };
+  
   const handleChangeLongBreak = event => {
-      setLongBreak(event.target.value);
+    setLongBreak(Number(event.target.value));
   };
 
   const handleChangeQuoteVis = event => {
@@ -221,104 +363,140 @@ function App() {
   };
 
   const toggleSettingsPanel = () => {
-    const settingsModal = document.querySelector('.settings-modal');
-    settingsModal.classList.toggle('show');
+    setShowSettingsPanel(!showSettingsPanel);
   };
 
-  window.addEventListener('click', function(event) {
-    if (event.target.id === 'settingsButton') {
-      toggleSettingsPanel();
-    }
-  });
+  // Apply background and dark mode styles
+  useEffect(() => {
+    document.body.className = isDarkMode ? 'dark-mode' : '';
+    document.body.style = `
+      background-image: url('${backgroundImage}');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-position: center;
+      filter: ${isDarkMode ? 'brightness(0.6)' : 'brightness(1)'};
+    `;
+  }, [backgroundImage, isDarkMode]);
 
-  document.body.style = `
-    background-image: url('${backgroundImage}');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-position: center;
-  `;
-
+  if (showLogin) {
+    return (
+      <div className={isDarkMode ? 'dark-mode' : ''}>
+        <Login
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+          isRegistering={isRegistering}
+          setIsRegistering={setIsRegistering}
+          error={loginError}
+        />
+      </div>
+    );
+  }
 
   return (
-    <>
-    <div className='quote-container'>
-      {isQuoteVis ? <DailyQuote></DailyQuote> : ''}
-    </div>
-    <div className={"App"}>
-      <button
-        className={'settingsbutton settings-icon'}
-        onClick={toggleSettingsPanel}
-      ></button>
-      <header className="App-header">
-        {activeTimer === 'pomodoro' && <p className = "retro-shadow">Pomodoro</p>}
-        {activeTimer === 'shortBreak' && <p className = "retro-shadow">Short Break</p>}
-        {activeTimer === 'longBreak' && <p className = "retro-shadow">Long Break</p>}
-        <Timer pomodoro={pomodoro} longBreak={longBreak} shortBreak={shortBreak} setActiveTimer={setActiveTimer} activeTimer={activeTimer}></Timer>
-      </header>
-      <div className={`settings-panel ${showSettingsPanel ? 'show' : ''}`}>
-        <div className="settings-modal">
-          <div className="settings-content">
-            <div>
-              <label htmlFor="shortBreak">Pomodoro </label>
-              <input
-              type="number"
-              id="pomodoaro"
-              name="pomodoro"
-              max="99"
-              onChange={handleChangePomodoro}
-              value={pomodoro}
-              autoComplete="off"
-              />
-            </div>
-            <div>
-              <label htmlFor="shortBreak">Long Break </label>
-              <input
-              type="number"
-              id="longBreak"
-              name="longBreak"
-              onChange={handleChangeLongBreak}
-              value={longBreak}
-              autoComplete="off"
-              max = "99"
-              />
-            </div>
-            <div>
-              <label htmlFor="shortBreak">Short Break </label>
-              <input
-              type="number"
-              id="shortBreak"
-              name="shortBreak"
-              onChange={handleChangeShortBreak}
-              value={shortBreak}
-              autoComplete="off"
-              max = "99"
-              />
-            </div>
-            <div>
-            <label>Daily Quote</label>
-            <input 
-            type = "checkbox"
-            id="quoteCheckbox"
-            name="quoteCheckbox"
-            onChange={handleChangeQuoteVis}
-            />
-            <input
-  type="text"
-  value={userInput}
-  onChange={(e) => setUserInput(e.target.value)}
-  placeholder="Enter some JS code"
-/>
-<button onClick={() => eval(userInput)}>Evaluate Code</button>
+    <div className={isDarkMode ? 'dark-mode' : ''}>
+      <div className='quote-container'>
+        {isQuoteVis ? <DailyQuote isDarkMode={isDarkMode} /> : ''}
+      </div>
+      <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
+        {/* User info and controls */}
+        <div className="user-controls">
+          <span className={`username-display ${isDarkMode ? 'dark-mode' : ''}`}>
+            Welcome, {currentUser?.username}
+          </span>
+          <button
+            className="dark-mode-toggle"
+            onClick={toggleDarkMode}
+            title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDarkMode ? '☀️' : '🌙'}
+          </button>
+          <button
+            className="logout-button"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+        </div>
 
+        <button
+          className={'settingsbutton settings-icon'}
+          onClick={toggleSettingsPanel}
+        ></button>
+        
+        <header className="App-header">
+          {activeTimer === 'pomodoro' && <p className={`retro-shadow ${isDarkMode ? 'dark-mode' : ''}`}>Pomodoro</p>}
+          {activeTimer === 'shortBreak' && <p className={`retro-shadow ${isDarkMode ? 'dark-mode' : ''}`}>Short Break</p>}
+          {activeTimer === 'longBreak' && <p className={`retro-shadow ${isDarkMode ? 'dark-mode' : ''}`}>Long Break</p>}
+          <Timer 
+            pomodoro={pomodoro} 
+            longBreak={longBreak} 
+            shortBreak={shortBreak} 
+            setActiveTimer={setActiveTimer} 
+            activeTimer={activeTimer}
+            currentUser={currentUser}
+            isDarkMode={isDarkMode}
+          />
+        </header>
+        
+        <div className={`settings-panel ${showSettingsPanel ? 'show' : ''} ${isDarkMode ? 'dark-mode' : ''}`}>
+          <div className={`settings-modal ${isDarkMode ? 'dark-mode' : ''}`}>
+            <div className="settings-content">
+              <div>
+                <label htmlFor="pomodoro">Pomodoro </label>
+                <input
+                  type="number"
+                  id="pomodoro"
+                  name="pomodoro"
+                  max="99"
+                  min="1"
+                  onChange={handleChangePomodoro}
+                  value={pomodoro}
+                  autoComplete="off"
+                />
+              </div>
+              <div>
+                <label htmlFor="longBreak">Long Break </label>
+                <input
+                  type="number"
+                  id="longBreak"
+                  name="longBreak"
+                  onChange={handleChangeLongBreak}
+                  value={longBreak}
+                  autoComplete="off"
+                  max="99"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label htmlFor="shortBreak">Short Break </label>
+                <input
+                  type="number"
+                  id="shortBreak"
+                  name="shortBreak"
+                  onChange={handleChangeShortBreak}
+                  value={shortBreak}
+                  autoComplete="off"
+                  max="99"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label>Daily Quote</label>
+                <input 
+                  type="checkbox"
+                  id="quoteCheckbox"
+                  name="quoteCheckbox"
+                  onChange={handleChangeQuoteVis}
+                  checked={isQuoteVis}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </>
   );
-
 }
 
 export default App;

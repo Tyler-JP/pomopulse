@@ -16,5 +16,13 @@
     1px -1px 0 pink,
     -1px  1px 0 pink,
     1px  1px 0 pink;
+    transition: all 0.3s ease;
 }
 
+.quote-component.dark-mode .quote {
+    color: #f0f0f0;
+    text-shadow: -1px -1px 0 rgba(100, 100, 255, 0.8), 
+    1px -1px 0 rgba(100, 100, 255, 0.8),
+    -1px  1px 0 rgba(100, 100, 255, 0.8),
+    1px  1px 0 rgba(100, 100, 255, 0.8);
+}

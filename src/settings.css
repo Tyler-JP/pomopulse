@@ -58,6 +58,7 @@ font-size: 0.9rem;
 display: flex;
 flex-direction: column;
 justify-content: space-between;
+transition: all 0.3s ease;
 }
 
 .settings-content div {
@@ -66,6 +67,20 @@ justify-content: space-between;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.settings-modal.dark-mode .settings-content {
+  color: #e0e0e0;
+}
+
+.settings-modal.dark-mode input[type="number"] {
+  background-color: rgba(60, 60, 60, 0.9);
+  color: white;
+  border: 1px solid #555;
+}
+
+.settings-modal.dark-mode input[type="checkbox"] {
+  filter: brightness(0.8) hue-rotate(180deg);
 }
 
 
@@ -82,11 +97,17 @@ max-width: 250px;
 max-height: 150px;
 overflow: auto;
 z-index: 1;
+transition: all 0.3s ease;
 }
 
-.settings-modal.show {
+.settings-panel.show .settings-modal {
 display: block;
-animation: blockyAppear 1.6s forwards;
+}
+
+.settings-modal.dark-mode {
+background-color: rgba(40, 40, 40, 0.95);
+color: white;
+box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
 }
 
 /*Settings modal animation*/
