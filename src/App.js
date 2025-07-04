@@ -17,7 +17,7 @@ function DailyQuote({ isDarkMode }) {
 
   const fetchQuote = useCallback(() => {
     const category = 'happiness';
-    const apiKey = 'PPUGDmR2acLHPAQ9aCIJyQ==4ReaEuj7mtZx5Rm6';
+    const apiKey = 'x';
 
     axios.get(`https://api.api-ninjas.com/v1/quotes?category=${category}`, {
       headers: {
