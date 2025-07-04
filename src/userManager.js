@@ -31,7 +31,8 @@ export const userManager = {
         settings: {
           pomodoro: 25,
           shortBreak: 5,
-          longBreak: 15
+          longBreak: 15,
+          notificationsEnabled: true
         }
       }
     };

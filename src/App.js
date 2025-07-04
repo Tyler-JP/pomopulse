@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import './App.css';
 import './timerButtons.css';
 import './settings.css';
@@ -9,6 +9,8 @@ import backgroundImageDay from './images/background.gif';
 import backgroundImageNight from './images/background-night-optimized.gif';
 import Login from './Login';
 import { userManager } from './userManager';
+import { notificationManager } from './notificationManager';
+import NotificationPanel from './NotificationPanel';
 
 function DailyQuote({ isDarkMode }) {
   const [quote, setQuote] = useState('');
@@ -59,7 +61,7 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer, cu
   const [isRunning, setIsRunning] = useState(false);
   const [isElapsed, setIsElapsed] = useState(false);
   const [endTime, setEndTime] = useState(null);
-  const alert = new Audio(timersound);
+  const alert = useMemo(() => new Audio(timersound), []);
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
@@ -87,6 +89,14 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer, cu
           setTimer('00:00');
           setActiveTimer(timerData.activeTimer);
           alert.play();
+          
+          // Broadcast timer completion event
+          const eventType = timerData.activeTimer === 'pomodoro' 
+            ? notificationManager.EVENT_TYPES.POMODORO_COMPLETED 
+            : notificationManager.EVENT_TYPES.BREAK_COMPLETED;
+          
+          notificationManager.broadcastEvent(eventType, currentUser.username, timerData.activeTimer);
+          
           // Clear the timer data
           userManager.saveTimerData(currentUser.username, {
             endTime: null,
@@ -115,7 +125,7 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer, cu
         }
       }
     }
-  }, [currentUser, pomodoro, longBreak, shortBreak]);
+  }, [currentUser, pomodoro, longBreak, shortBreak, alert, setActiveTimer]);
 
   const setTimerState = (timerType) => {
     let timeValue = 0;
@@ -221,8 +231,15 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer, cu
           setIsRunning(false);
           setTimer('00:00');
           
-          // Clear timer data from user storage
+          // Broadcast timer completion event
           if (currentUser) {
+            const eventType = activeTimer === 'pomodoro' 
+              ? notificationManager.EVENT_TYPES.POMODORO_COMPLETED 
+              : notificationManager.EVENT_TYPES.BREAK_COMPLETED;
+            
+            notificationManager.broadcastEvent(eventType, currentUser.username, activeTimer);
+            
+            // Clear timer data from user storage
             userManager.saveTimerData(currentUser.username, {
               endTime: null,
               isRunning: false
@@ -233,7 +250,7 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer, cu
       tick();
     }
     return () => clearTimeout(timerRef.current);
-  }, [isRunning, endTime, currentUser]);
+  }, [isRunning, endTime, currentUser, activeTimer, alert]);
 
   const timerLabels = {
     'pomodoro': 'P',
@@ -270,6 +287,7 @@ function App() {
   const [shortBreak, setShortBreak] = useState(5);
   const [longBreak, setLongBreak] = useState(15);
   const [activeTimer, setActiveTimer] = useState('pomodoro');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   // Check for logged in user on app start
   useEffect(() => {
@@ -282,6 +300,7 @@ function App() {
         setPomodoro(settings.pomodoro || 25);
         setShortBreak(settings.shortBreak || 5);
         setLongBreak(settings.longBreak || 15);
+        setNotificationsEnabled(settings.notificationsEnabled !== undefined ? settings.notificationsEnabled : true);
       }
     } else {
       setShowLogin(true);
@@ -294,10 +313,11 @@ function App() {
       userManager.saveUserSettings(currentUser.username, {
         pomodoro,
         shortBreak,
-        longBreak
+        longBreak,
+        notificationsEnabled
       });
     }
-  }, [pomodoro, shortBreak, longBreak, currentUser]);
+  }, [pomodoro, shortBreak, longBreak, notificationsEnabled, currentUser]);
 
   const handleLogin = (username, password) => {
     const result = userManager.loginUser(username, password);
@@ -362,6 +382,10 @@ function App() {
     setIsQuoteVis(!isQuoteVis);
   };
 
+  const handleChangeNotifications = event => {
+    setNotificationsEnabled(!notificationsEnabled);
+  };
+
   const toggleSettingsPanel = () => {
     setShowSettingsPanel(!showSettingsPanel);
   };
@@ -418,6 +442,12 @@ function App() {
             Logout
           </button>
         </div>
+
+        {/* Notification Panel */}
+        <NotificationPanel 
+          currentUser={currentUser} 
+          isEnabled={notificationsEnabled}
+        />
 
         <button
           className={'settingsbutton settings-icon'}
@@ -489,6 +519,16 @@ function App() {
                   name="quoteCheckbox"
                   onChange={handleChangeQuoteVis}
                   checked={isQuoteVis}
+                />
+              </div>
+              <div>
+                <label>Real-time Notifications</label>
+                <input 
+                  type="checkbox"
+                  id="notificationsCheckbox"
+                  name="notificationsCheckbox"
+                  onChange={handleChangeNotifications}
+                  checked={notificationsEnabled}
                 />
               </div>
             </div>
