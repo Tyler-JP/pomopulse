@@ -3,7 +3,10 @@ export const notificationManager = {
   // Event types
   EVENT_TYPES: {
     POMODORO_COMPLETED: 'pomodoro_completed',
-    BREAK_COMPLETED: 'break_completed'
+    BREAK_COMPLETED: 'break_completed',
+    SCREEN_EFFECTS: 'screen_effects',
+    CUSTOM_ANNOUNCEMENT: 'custom_announcement',
+    FIRE_EMOJI_ACTIVATED: 'fire_emoji_activated'
   },
 
   // Generate unique event ID
@@ -12,13 +15,14 @@ export const notificationManager = {
   },
 
   // Broadcast event to all tabs
-  broadcastEvent: (eventType, username, timerType) => {
+  broadcastEvent: (eventType, username, timerType, additionalData = {}) => {
     const event = {
       id: notificationManager.generateEventId(),
       type: eventType,
       username: username,
       timerType: timerType,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      ...additionalData
     };
 
     // Get existing events
@@ -90,20 +94,32 @@ export const notificationManager = {
 
   // Format notification message
   formatNotificationMessage: (event) => {
-    const { username, timerType, type } = event;
+    const { username, timerType, type, message } = event;
+    
+    // Import userManager here to avoid circular dependency
+    const { userManager } = require('./userManager');
+    
+    // Add fire emoji if user has it active
+    const displayName = userManager.hasFireEmoji(username) ? `${username} 🔥` : username;
     
     switch (type) {
       case notificationManager.EVENT_TYPES.POMODORO_COMPLETED:
-        return `${username} just finished a pomodoro timer!`;
+        return `${displayName} just finished a pomodoro timer!`;
       case notificationManager.EVENT_TYPES.BREAK_COMPLETED:
         if (timerType === 'shortBreak') {
-          return `${username} finished a short break!`;
+          return `${displayName} finished a short break!`;
         } else if (timerType === 'longBreak') {
-          return `${username} finished a long break!`;
+          return `${displayName} finished a long break!`;
         }
-        return `${username} finished a break!`;
+        return `${displayName} finished a break!`;
+      case notificationManager.EVENT_TYPES.SCREEN_EFFECTS:
+        return `${displayName} activated screen effects! ✨`;
+      case notificationManager.EVENT_TYPES.CUSTOM_ANNOUNCEMENT:
+        return `${displayName}: ${message}`;
+      case notificationManager.EVENT_TYPES.FIRE_EMOJI_ACTIVATED:
+        return `${displayName} is on fire! 🔥`;
       default:
-        return `${username} completed a timer!`;
+        return `${displayName} completed a timer!`;
     }
   }
 };

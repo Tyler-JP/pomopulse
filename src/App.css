@@ -111,6 +111,70 @@
     box-shadow: 0 5px 15px rgba(240, 188, 204, 0.4);
   }
 
+  /* Pulsar Points Display */
+  .pulsar-points-display {
+    background: rgba(255, 215, 0, 0.2);
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .pulsar-points-display:hover {
+    background: rgba(255, 215, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.6);
+    transform: scale(1.05);
+  }
+
+  .points-icon {
+    font-size: 1.2rem;
+    animation: pulse 2s infinite;
+  }
+
+  .points-text {
+    font-family: 'PublicPixel', monospace;
+    color: #ffd700;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+
+  /* Store Button */
+  .store-button {
+    background: rgba(138, 43, 226, 0.8);
+    border: 2px solid rgba(138, 43, 226, 0.6);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .store-button:hover {
+    background: rgba(138, 43, 226, 1);
+    border-color: rgba(138, 43, 226, 0.8);
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+  }
+
   /* Dark mode body styles */
   body.dark-mode {
     filter: brightness(0.6) !important;

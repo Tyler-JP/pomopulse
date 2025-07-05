@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { notificationManager } from './notificationManager';
+import { userManager } from './userManager';
 import './NotificationPanel.css';
 
 const NotificationPanel = ({ currentUser, isEnabled }) => {
@@ -22,7 +23,8 @@ const NotificationPanel = ({ currentUser, isEnabled }) => {
         id: event.id,
         message: notificationManager.formatNotificationMessage(event),
         timestamp: event.timestamp,
-        isNew: true
+        isNew: true,
+        username: event.username
       };
 
       setNotifications(prev => {

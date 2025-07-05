@@ -11,6 +11,8 @@ import Login from './Login';
 import { userManager } from './userManager';
 import { notificationManager } from './notificationManager';
 import NotificationPanel from './NotificationPanel';
+import Store from './Store';
+import ScreenEffects from './ScreenEffects';
 
 function DailyQuote({ isDarkMode }) {
   const [quote, setQuote] = useState('');
@@ -55,7 +57,7 @@ function DailyQuote({ isDarkMode }) {
   );
 }
 
-function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer, currentUser, isDarkMode}) {
+function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer, currentUser, isDarkMode, onPulsarPointsEarned}) {
   const timerRef = useRef(null);
   const [timer, setTimer] = useState('25:00');
   const [isRunning, setIsRunning] = useState(false);
@@ -231,20 +233,33 @@ function Timer({pomodoro, longBreak, shortBreak, setActiveTimer, activeTimer, cu
           setIsRunning(false);
           setTimer('00:00');
           
-          // Broadcast timer completion event
-          if (currentUser) {
-            const eventType = activeTimer === 'pomodoro' 
-              ? notificationManager.EVENT_TYPES.POMODORO_COMPLETED 
-              : notificationManager.EVENT_TYPES.BREAK_COMPLETED;
-            
-            notificationManager.broadcastEvent(eventType, currentUser.username, activeTimer);
-            
-            // Clear timer data from user storage
-            userManager.saveTimerData(currentUser.username, {
-              endTime: null,
-              isRunning: false
-            });
-          }
+            // Broadcast timer completion event and award points
+            if (currentUser) {
+              const eventType = activeTimer === 'pomodoro' 
+                ? notificationManager.EVENT_TYPES.POMODORO_COMPLETED 
+                : notificationManager.EVENT_TYPES.BREAK_COMPLETED;
+              
+              notificationManager.broadcastEvent(eventType, currentUser.username, activeTimer);
+              
+              // Award Pulsar Points for completing timers
+              let pointsEarned = 0;
+              if (activeTimer === 'pomodoro') {
+                pointsEarned = 2000; // 10 points for completing a pomodoro
+              } else {
+                pointsEarned = 5; // 5 points for completing a break
+              }
+              
+              const newPoints = userManager.addPulsarPoints(currentUser.username, pointsEarned);
+              if (onPulsarPointsEarned) {
+                onPulsarPointsEarned(newPoints, pointsEarned);
+              }
+              
+              // Clear timer data from user storage
+              userManager.saveTimerData(currentUser.username, {
+                endTime: null,
+                isRunning: false
+              });
+            }
         }
       };
       tick();
@@ -288,6 +303,9 @@ function App() {
   const [longBreak, setLongBreak] = useState(15);
   const [activeTimer, setActiveTimer] = useState('pomodoro');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [showStore, setShowStore] = useState(false);
+  const [pulsarPoints, setPulsarPoints] = useState(0);
+  const [screenEffectsActive, setScreenEffectsActive] = useState(false);
 
   // Check for logged in user on app start
   useEffect(() => {
@@ -302,6 +320,9 @@ function App() {
         setLongBreak(settings.longBreak || 15);
         setNotificationsEnabled(settings.notificationsEnabled !== undefined ? settings.notificationsEnabled : true);
       }
+      // Load Pulsar Points
+      const points = userManager.getPulsarPoints(user.username);
+      setPulsarPoints(points);
     } else {
       setShowLogin(true);
     }
@@ -390,6 +411,54 @@ function App() {
     setShowSettingsPanel(!showSettingsPanel);
   };
 
+  // Store functionality
+  const toggleStore = () => {
+    setShowStore(!showStore);
+  };
+
+  const handlePulsarPointsEarned = (newTotal, pointsEarned) => {
+    setPulsarPoints(newTotal);
+  };
+
+  const handleStorePointsUpdate = (newTotal) => {
+    setPulsarPoints(newTotal);
+  };
+
+  // Store event handlers
+  useEffect(() => {
+    if (!currentUser || !notificationsEnabled) return;
+
+    const handleStoreEvent = (event) => {
+      // Don't handle events from the current user
+      if (event.username === currentUser.username) {
+        return;
+      }
+
+      switch (event.type) {
+        case notificationManager.EVENT_TYPES.SCREEN_EFFECTS:
+          setScreenEffectsActive(true);
+          setTimeout(() => {
+            setScreenEffectsActive(false);
+          }, event.duration || 30000);
+          break;
+        
+        case notificationManager.EVENT_TYPES.CUSTOM_ANNOUNCEMENT:
+          // Custom announcements are handled by NotificationPanel
+          break;
+        
+        case notificationManager.EVENT_TYPES.FIRE_EMOJI_ACTIVATED:
+          // Fire emoji effects are handled by username display
+          break;
+        
+        default:
+          break;
+      }
+    };
+
+    const cleanup = notificationManager.addStorageListener(handleStoreEvent);
+    return cleanup;
+  }, [currentUser, notificationsEnabled]);
+
   // Apply background and dark mode styles
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark-mode' : '';
@@ -426,8 +495,19 @@ function App() {
         {/* User info and controls */}
         <div className="user-controls">
           <span className={`username-display ${isDarkMode ? 'dark-mode' : ''}`}>
-            Welcome, {currentUser?.username}
+            Welcome, {currentUser?.username} {userManager.hasFireEmoji(currentUser?.username) ? '🔥' : ''}
           </span>
+          <div className="pulsar-points-display">
+            <span className="points-icon">⭐</span>
+            <span className="points-text">{pulsarPoints} PP</span>
+          </div>
+          <button
+            className="store-button"
+            onClick={toggleStore}
+            title="Open Pulsar Store"
+          >
+            🛍️
+          </button>
           <button
             className="dark-mode-toggle"
             onClick={toggleDarkMode}
@@ -466,6 +546,7 @@ function App() {
             activeTimer={activeTimer}
             currentUser={currentUser}
             isDarkMode={isDarkMode}
+            onPulsarPointsEarned={handlePulsarPointsEarned}
           />
         </header>
         
@@ -534,6 +615,20 @@ function App() {
             </div>
           </div>
         </div>
+
+        {/* Store Modal */}
+        <Store
+          currentUser={currentUser}
+          isOpen={showStore}
+          onClose={toggleStore}
+          onPointsUpdate={handleStorePointsUpdate}
+        />
+
+        {/* Screen Effects */}
+        <ScreenEffects
+          isActive={screenEffectsActive}
+          duration={30000}
+        />
       </div>
     </div>
   );

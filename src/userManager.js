@@ -34,6 +34,11 @@ export const userManager = {
           longBreak: 15,
           notificationsEnabled: true
         }
+      },
+      pulsarPoints: 0,
+      storeEffects: {
+        fireEmoji: null, // Will store expiration timestamp
+        customAnnouncement: null
       }
     };
 
@@ -102,5 +107,71 @@ export const userManager = {
     const now = Date.now();
     const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
     return remaining;
+  },
+
+  // Pulsar Points management
+  getPulsarPoints: (username) => {
+    const users = userManager.getUsers();
+    return users[username] ? users[username].pulsarPoints || 0 : 0;
+  },
+
+  addPulsarPoints: (username, points) => {
+    const users = userManager.getUsers();
+    if (users[username]) {
+      users[username].pulsarPoints = (users[username].pulsarPoints || 0) + points;
+      userManager.saveUsers(users);
+      return users[username].pulsarPoints;
+    }
+    return 0;
+  },
+
+  spendPulsarPoints: (username, points) => {
+    const users = userManager.getUsers();
+    if (users[username]) {
+      const currentPoints = users[username].pulsarPoints || 0;
+      if (currentPoints >= points) {
+        users[username].pulsarPoints = currentPoints - points;
+        userManager.saveUsers(users);
+        return { success: true, remainingPoints: users[username].pulsarPoints };
+      }
+      return { success: false, error: 'Insufficient Pulsar Points' };
+    }
+    return { success: false, error: 'User not found' };
+  },
+
+  // Store effects management
+  getStoreEffects: (username) => {
+    const users = userManager.getUsers();
+    if (users[username]) {
+      const effects = users[username].storeEffects || {};
+      // Clean up expired effects
+      const now = Date.now();
+      if (effects.fireEmoji && effects.fireEmoji < now) {
+        effects.fireEmoji = null;
+        users[username].storeEffects = effects;
+        userManager.saveUsers(users);
+      }
+      return effects;
+    }
+    return {};
+  },
+
+  setStoreEffect: (username, effectType, data) => {
+    const users = userManager.getUsers();
+    if (users[username]) {
+      if (!users[username].storeEffects) {
+        users[username].storeEffects = {};
+      }
+      users[username].storeEffects[effectType] = data;
+      userManager.saveUsers(users);
+      return true;
+    }
+    return false;
+  },
+
+  // Check if user has fire emoji effect active
+  hasFireEmoji: (username) => {
+    const effects = userManager.getStoreEffects(username);
+    return effects.fireEmoji && effects.fireEmoji > Date.now();
   }
 };
